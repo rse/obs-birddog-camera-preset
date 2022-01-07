@@ -82,7 +82,7 @@ end
 --  recall a pre-defined PTZ preset on a Birddog camera
 local function recall (address, preset)
      obs.script_log(obs.LOG_INFO,
-         string.format("recall PTZ preset #%d on Birddog camera %s", preset, address))
+         string.format("recalling PTZ preset #%d on Birddog camera %s", preset, address))
      httpRequest(address, 8080, "/recall",
          "application/json", "{ \"Preset\": \"Preset-" .. preset .. "\" }")
 end
