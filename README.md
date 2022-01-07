@@ -2,7 +2,7 @@
 OBS-Birddog-Camera-Preset
 =========================
 
-**Recalling a Birddog Camera Preset from within OBS Studio**
+**Recall Birddog Camera Preset from OBS Studio**
 
 About
 -----
