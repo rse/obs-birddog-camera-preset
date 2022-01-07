@@ -2,7 +2,7 @@
 LJSocket
 ========
 
-This is a copy of the
+This is a copy of the [MIT-licensed](https://github.com/CapsAdmin/luajitsocket/blob/master/LICENSE)
 [Lua source code](https://raw.githubusercontent.com/CapsAdmin/luajitsocket/master/ljsocket.lua)
 of the [LuaJITSocket](https://github.com/CapsAdmin/luajitsocket/)
 project, a pure LuaJIT FFI socket binding module
