@@ -7,17 +7,18 @@ OBS-Birddog-Camera-Preset
 About
 -----
 
-This is a two-fold way to recall defined presets on a Birddog camera
+This is a two-fold way to recall defined PTZ presets on a [Birddog](https://bird-dog.tv/) camera
 from within [OBS Studio](https://obsproject.com) through the Birddog
-REST API of the camera.
+[RESTful API](https://bird-dog.tv/SW/API/index.html#api-PTZ-recallPost) of the camera.
 
-The first way of control is a manual one through a tiny HTML5
+The first way of recalling a preset is a manual one through a tiny HTML5
 Single-Page-Application (SPA), intended to be running inside a [OBS
 Source Dock](https://github.com/exeldro/obs-source-dock) inside [OBS
-Studio](https://obsproject.com) on top of a preview of the camera scene.
+Studio](https://obsproject.com). The SPA is usually running in a scene where it
+sits on top of a preview of the camera video stream.
 
-The second way of control is an automatic one through a OBS Lua
-based scene/source filter which recalls the camera preset once the
+The second way of recalling a preset is an automatic one through an OBS Lua
+based scene/source filter which recalls the camera preset automatically once the
 scene/source becomes active (is shown in the program).
 
 License
