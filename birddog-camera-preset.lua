@@ -201,7 +201,7 @@ function script_description ()
         Copyright &copy; 2022 <a style="color: #ffffff; text-decoration: none;"
         href="http://engelschall.com">Dr. Ralf S. Engelschall</a><br/>
         Distributed under <a style="color: #ffffff; text-decoration: none;"
-        href="https://spdx.org/licenses/MIT.html">MIT license</a>
+        href="https://spdx.org/licenses/GPL-3.0-only.html">GPL 3.0 license</a>
 
         <p>
         <b>Define a Birddog Camera Preset filter for sources. This is intended
