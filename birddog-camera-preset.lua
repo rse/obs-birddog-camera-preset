@@ -24,7 +24,7 @@ local function httpRequest (host, port, path, type, body)
     end
     req = req ..
         "Host: " .. host .. "\r\n" ..
-        "User-Agent: OBS-Studio\r\n" ..
+        "User-Agent: OBS-Birddog-Camera-Preset\r\n" ..
         "Accept: */*\r\n" ..
         "Connection: keep-alive\r\n"
     if not (type == nil and body == nil) then
@@ -36,17 +36,17 @@ local function httpRequest (host, port, path, type, body)
     end
 
     --  connect to the server
-    obs.script_log(obs.LOG_INFO, string.format("httpRequest: connect: \"%s:%d\"", host, port))
+    obs.script_log(obs.LOG_INFO, string.format("HTTP: connect: \"%s:%d\"", host, port))
     local socket = ljsocket.create("inet", "stream", "tcp")
     socket:set_blocking(false)
     socket:connect(host, port)
     while true do
         if socket:is_connected() then
             --  send request
-            obs.script_log(obs.LOG_INFO, string.format("httpRequest: send: \"%s\"", req))
+            obs.script_log(obs.LOG_INFO, string.format("HTTP: send: \"%s\"", req))
             local ok, err = socket:send(req)
             if err == "timeout" then
-                obs.script_log(obs.LOG_INFO, string.format("httpRequest: send: error: %s -- aborting", err))
+                obs.script_log(obs.LOG_INFO, string.format("HTTP: send: error: %s -- aborting", err))
                 return nil
             end
 
@@ -61,18 +61,18 @@ local function httpRequest (host, port, path, type, body)
                         total_length = tonumber(res:match("Content%-Length: (%d+)"))
                     end
                     if #res >= total_length then
-                        obs.script_log(obs.LOG_INFO, string.format("httpRequest: receive: \"%s\"", res))
+                        obs.script_log(obs.LOG_INFO, string.format("HTTP: receive: \"%s\"", res))
                         return res
                     end
                 elseif err ~= "timeout" then
-                    obs.script_log(obs.LOG_INFO, string.format("httpRequest: receive: error: %s -- aborting", err))
+                    obs.script_log(obs.LOG_INFO, string.format("HTTP: receive: error: %s -- aborting", err))
                     return nil
                 end
             end
         else
             local ok, err = socket:poll_connect()
             if err ~= "timeout" then
-                obs.script_log(obs.LOG_INFO, string.format("httpRequest: poll: error: %s -- aborting", err))
+                obs.script_log(obs.LOG_INFO, string.format("HTTP: poll: error: %s -- aborting", err))
                 return nil
             end
         end
