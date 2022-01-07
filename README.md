@@ -31,7 +31,7 @@ Usage
   add the filter `Birddog Camera Preset` to an arbitrary source and
   enter the IP address and preset number as filter parameters.
 
-- **Manuall Recall via Source Dock**
+- **Manually Recall via Source Dock**
 
   This allows you to manually recall a preset by clicking onto a
   button in a OBS Studio user interface dock. For this, create a
