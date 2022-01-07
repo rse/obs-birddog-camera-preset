@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<!--
+**
+**  birddog-camera-preset.html ~ OBS Studio Browser Source for Recalling a Birddog Camera Preset
+**  Copyright (c) 2022 Dr. Ralf S. Engelschall <rse@engelschall.com>
+**  Distributed under MIT license <https://spdx.org/licenses/MIT.html>
+**
+-->
+<html>
+    <head>
+        <title>Birddog Camera Preset</title>
+        <meta charset="UTF-8"/>
+        <link rel="preconnect" href="https://fonts.gstatic.com">
+        <link rel="preconnect" href="https://cdn.jsdelivr.net">
+        <link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+        <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/vue@3.2.26/dist/vue.global.prod.js"></script>
+        <style type="text/css">
+            html, body {
+                margin: 0;
+                padding: 0;
+                background-color: transparent;
+            }
+            body {
+                color: #f0f0f0;
+                font-family: "Source Sans Pro";
+                display: flex;
+                flex-direction: row;
+                justify-content: center;
+                align-items: center;
+                user-select: none;
+                overflow: hidden;
+            }
+            .canvas {
+                width: 100vw;
+                height: 100vh;
+                position: relative;
+                background-color: #222222;
+                overflow: hidden;
+            }
+            .canvas.transparent {
+                background-color: transparent;
+            }
+            .canvas .toolbar {
+                position: absolute;
+                top: 2vw;
+                right: 2vw;
+                display: flex;
+                flex-direction: row;
+            }
+            .canvas .toolbar .preset {
+                padding: 0 3vw 0 3vw;
+                background-color: #444444d0;
+                color: #ffffff;
+                font-weight: bold;
+                border-radius: 1vw;
+                font-size: 5vw;
+                margin-left: 1vw;
+                text-align: center;
+            }
+            .canvas .toolbar .preset:hover {
+                background-color: #0066bbd0;
+            }
+        </style>
+    </head>
+    <body>
+        <div v-bind:class="{ transparent: transparent }" class="canvas" ref="canvas">
+            <div class="toolbar">
+                <div v-for="preset of presets" v-on:click="setPreset(preset)" class="preset">
+                    {{ preset.name }}
+                </div>
+            </div>
+        </div>
+    </body>
+    <script type="text/javascript">
+        const app = {
+            data () {
+                return {
+                    transparent: false,
+                    camera:      "192.168.0.1",
+                    presets:     [ { num: 1, name: 1 } ]
+                }
+            },
+            async mounted () {
+                /*  parse options  */
+                const params = {}
+                if (document.location.href.match(/^.*\?(.+)$/)) {
+                    for (const kv of document.location.href.replace(/^.*\?/, "").split(/\&/)) {
+                        const [ , key, val ] = kv.match(/^(.*?)=(.*)$/)
+                        params[key] = val
+                    }
+                }
+                if (params.transparent !== undefined)
+                    this.transparent = (params.transparent === "true")
+                if (params.camera !== undefined)
+                    this.camera = params.camera
+                if (params.presets !== undefined) {
+                    const presets = params.presets.split(/,/)
+                    for (let i = 0; i < presets.length; i++) {
+                        let num  = presets[i]
+                        let name = num
+                        const m = presets[i].match(/^(\d):(.+)$/)
+                        if (m !== null) {
+                            num  = m[1]
+                            name = m[2]
+                        }
+                        this.presets[i] = { num, name }
+                    }
+                }
+            },
+            methods: {
+                /*  set a preset  */
+                async setPreset (preset) {
+                    console.log(`recall PTZ preset #${preset.num} on Birddog camera ${this.camera}`)
+                    const xhr = new XMLHttpRequest()
+                    xhr.open("POST", `http://${this.camera}:8080/recall`)
+                    xhr.setRequestHeader("Content-Type", "application/json")
+                    xhr.send(`{ "Preset": "Preset-${preset.num}" }`)
+                }
+            }
+        }
+        Vue.createApp(app).mount("body")
+    </script>
+</html>
