@@ -23,10 +23,6 @@
             body {
                 color: #f0f0f0;
                 font-family: "Source Sans Pro";
-                display: flex;
-                flex-direction: row;
-                justify-content: center;
-                align-items: center;
                 user-select: none;
                 overflow: hidden;
             }
@@ -51,9 +47,9 @@
                 padding: 0 3vw 0 3vw;
                 background-color: #444444d0;
                 color: #ffffff;
+                font-size: 5vw;
                 font-weight: bold;
                 border-radius: 1vw;
-                font-size: 5vw;
                 margin-left: 1vw;
                 text-align: center;
             }
@@ -63,9 +59,9 @@
         </style>
     </head>
     <body>
-        <div v-bind:class="{ transparent: transparent }" class="canvas" ref="canvas">
+        <div v-bind:class="{ transparent: transparent }" class="canvas">
             <div class="toolbar">
-                <div v-for="preset of presets" v-on:click="setPreset(preset)" class="preset">
+                <div v-for="preset of presets" v-on:click="recallPreset(preset)" class="preset">
                     {{ preset.name }}
                 </div>
             </div>
@@ -109,8 +105,8 @@
             },
             methods: {
                 /*  set a preset  */
-                async setPreset (preset) {
-                    console.log(`recall PTZ preset #${preset.num} on Birddog camera ${this.camera}`)
+                async recallPreset (preset) {
+                    console.log(`recalling PTZ preset #${preset.num} on Birddog camera ${this.camera}`)
                     const xhr = new XMLHttpRequest()
                     xhr.open("POST", `http://${this.camera}:8080/recall`)
                     xhr.setRequestHeader("Content-Type", "application/json")
