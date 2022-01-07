@@ -2,7 +2,7 @@
 **
 **  birddog-camera-preset.lua -- OBS Studio Source Filter for Recalling a Birddog Camera Preset
 **  Copyright (c) 2022 Dr. Ralf S. Engelschall <rse@engelschall.com>
-**  Distributed under MIT license <https://spdx.org/licenses/MIT.html>
+**  Distributed under GPL 3.0 license <https://spdx.org/licenses/GPL-3.0-only.html>
 **
 --]]
 

@@ -7,18 +7,18 @@ OBS-Birddog-Camera-Preset
 About
 -----
 
-This is a small HTML5 Single-Page-Application (SPA) for interactively
-controlling the position and/or size of one or more related *Crop/Pad*
-source filters in [OBS Studio](https://obsproject.com) through a remote
-[OBS WebSocket](https://github.com/obsproject/obs-websocket) connection.
-The transition from the old to the new crop position and/or size is
-performed over a configured time duration and with a cubic in/out
-easing, in order to somewhat simulate the behaviour of a PTZ camera.
+This is a two-fold way to recall defined presets on a Birddog camera
+from within [OBS Studio](https://obsproject.com) through the Birddog
+REST API of the camera.
 
-This SPA can be running inside a separate Browser, inside a *Custom
-Browser Dock* of [OBS Studio](https://obsproject.com), or even inside a
-[OBS Source Dock](https://github.com/exeldro/obs-source-dock) inside [OBS
-Studio](https://obsproject.com).
+The first way of control is a manual one through a tiny HTML5
+Single-Page-Application (SPA), intended to be running inside a [OBS
+Source Dock](https://github.com/exeldro/obs-source-dock) inside [OBS
+Studio](https://obsproject.com) on top of a preview of the camera scene.
+
+The second way of control is an automatic one through a OBS Lua
+based scene/source filter which recalls the camera preset once the
+scene/source becomes active (is shown in the program).
 
 License
 -------
