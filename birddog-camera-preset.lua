@@ -16,7 +16,7 @@ local ljsocket = require("ljsocket")
 --  send HTTP request
 local function httpRequest (host, port, path, type, body)
     --  create HTTP request
-    local req = ""
+    local req
     if type == nil and body == nil then
         req = "GET " .. path .. " HTTP/1.1\r\n"
     else
@@ -44,7 +44,7 @@ local function httpRequest (host, port, path, type, body)
         if socket:is_connected() then
             --  send request
             obs.script_log(obs.LOG_INFO, string.format("HTTP: send: \"%s\"", req))
-            local ok, err = socket:send(req)
+            local _, err = socket:send(req)
             if err == "timeout" then
                 obs.script_log(obs.LOG_INFO, string.format("HTTP: send: error: %s -- aborting", err))
                 return nil
@@ -54,7 +54,7 @@ local function httpRequest (host, port, path, type, body)
             local res = ""
             local total_length = 0
             while true do
-                local chunk, err = socket:receive()
+                local chunk, err2 = socket:receive()
                 if chunk then
                     res = res .. chunk
                     if not total_length then
@@ -64,13 +64,13 @@ local function httpRequest (host, port, path, type, body)
                         obs.script_log(obs.LOG_INFO, string.format("HTTP: receive: \"%s\"", res))
                         return res
                     end
-                elseif err ~= "timeout" then
-                    obs.script_log(obs.LOG_INFO, string.format("HTTP: receive: error: %s -- aborting", err))
+                elseif err2 ~= "timeout" then
+                    obs.script_log(obs.LOG_INFO, string.format("HTTP: receive: error: %s -- aborting", err2))
                     return nil
                 end
             end
         else
-            local ok, err = socket:poll_connect()
+            local _, err = socket:poll_connect()
             if err ~= "timeout" then
                 obs.script_log(obs.LOG_INFO, string.format("HTTP: poll: error: %s -- aborting", err))
                 return nil
