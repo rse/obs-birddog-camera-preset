@@ -11,7 +11,7 @@ local obs = obslua
 
 --  global Lua APIs
 local bit      = require("bit")
-local ljsocket = require("shared-ljsocket")
+local ljsocket = require("ljsocket")
 
 --  send HTTP request
 local function httpRequest (host, port, path, type, body)
