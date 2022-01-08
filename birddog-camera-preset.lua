@@ -95,10 +95,12 @@ local function recall (address, preset)
          string.format("recalling PTZ preset #%d on Birddog camera %s", preset, address))
      local res = httpRequest(address, 8080, "/recall",
          "application/json", "{ \"Preset\": \"Preset-" .. preset .. "\" }")
-     local code = tonumber(res:match("HTTP/1.1 (%d+) "))
-     if code ~= 200 then
-         obs.script_log(obs.LOG_ERROR,
-             string.format("Birddog camera answered with HTTP response code %d", code))
+     if res ~= nil then
+         local code = tonumber(res:match("HTTP/1.1 (%d+) "))
+         if code ~= 200 then
+             obs.script_log(obs.LOG_ERROR,
+                 string.format("Birddog camera answered with HTTP response code %d", code))
+         end
      end
 end
 
