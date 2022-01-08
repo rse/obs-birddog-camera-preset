@@ -48,6 +48,7 @@ local function httpRequest (host, port, path, type, body)
             local _, err = socket:send(req)
             if err == "timeout" then
                 obs.script_log(obs.LOG_INFO, string.format("HTTP: send: error: %s -- aborting", err))
+                socket:close()
                 return nil
             end
 
@@ -63,10 +64,12 @@ local function httpRequest (host, port, path, type, body)
                     end
                     if #res >= total_length then
                         obs.script_log(obs.LOG_INFO, string.format("HTTP: receive: \"%s\"", res))
+                        socket:close()
                         return res
                     end
                 elseif err2 ~= "timeout" then
                     obs.script_log(obs.LOG_INFO, string.format("HTTP: receive: error: %s -- aborting", err2))
+                    socket:close()
                     return nil
                 end
             end
