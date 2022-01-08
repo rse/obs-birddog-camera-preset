@@ -40,6 +40,7 @@ local function httpRequest (host, port, path, type, body)
     local socket = ljsocket.create("inet", "stream", "tcp")
     socket:set_blocking(false)
     socket:connect(host, port)
+    local count = 0
     while true do
         if socket:is_connected() then
             --  send request
@@ -74,6 +75,12 @@ local function httpRequest (host, port, path, type, body)
             if err ~= "timeout" then
                 obs.script_log(obs.LOG_INFO, string.format("HTTP: poll: error: %s -- aborting", err))
                 return nil
+            else
+                count = count + 1
+                if count > 100 then
+                    obs.script_log(obs.LOG_INFO, string.format("HTTP: poll: too many connect timeouts in sequence"))
+                    return nil
+                end
             end
         end
     end
