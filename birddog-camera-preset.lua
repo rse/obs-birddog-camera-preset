@@ -24,7 +24,7 @@ local function httpRequest (host, port, path, type, body)
     end
     req = req ..
         "Host: " .. host .. "\r\n" ..
-        "User-Agent: OBS-Birddog-Camera-Preset\r\n" ..
+        "User-Agent: OBS-Studio/Birddog-Camera-Preset\r\n" ..
         "Accept: */*\r\n" ..
         "Connection: keep-alive\r\n"
     if not (type == nil and body == nil) then
@@ -36,7 +36,7 @@ local function httpRequest (host, port, path, type, body)
     end
 
     --  connect to the server
-    obs.script_log(obs.LOG_INFO, string.format("HTTP: connect: \"%s:%d\"", host, port))
+    --  obs.script_log(obs.LOG_INFO, string.format("HTTP: connect: \"%s:%d\"", host, port))
     local socket = ljsocket.create("inet", "stream", "tcp")
     socket:set_blocking(false)
     socket:connect(host, port)
@@ -44,10 +44,10 @@ local function httpRequest (host, port, path, type, body)
     while true do
         if socket:is_connected() then
             --  send request
-            obs.script_log(obs.LOG_INFO, string.format("HTTP: send: \"%s\"", req))
+            --  obs.script_log(obs.LOG_INFO, string.format("HTTP: send: \"%s\"", req))
             local _, err = socket:send(req)
             if err == "timeout" then
-                obs.script_log(obs.LOG_INFO, string.format("HTTP: send: error: %s -- aborting", err))
+                obs.script_log(obs.LOG_ERROR, string.format("HTTP: send: error: %s -- aborting", err))
                 socket:close()
                 return nil
             end
@@ -63,12 +63,12 @@ local function httpRequest (host, port, path, type, body)
                         total_length = tonumber(res:match("Content%-Length: (%d+)"))
                     end
                     if #res >= total_length then
-                        obs.script_log(obs.LOG_INFO, string.format("HTTP: receive: \"%s\"", res))
+                        --  obs.script_log(obs.LOG_INFO, string.format("HTTP: receive: \"%s\"", res))
                         socket:close()
                         return res
                     end
                 elseif err2 ~= "timeout" then
-                    obs.script_log(obs.LOG_INFO, string.format("HTTP: receive: error: %s -- aborting", err2))
+                    obs.script_log(obs.LOG_ERROR, string.format("HTTP: receive: error: %s -- aborting", err2))
                     socket:close()
                     return nil
                 end
@@ -76,12 +76,12 @@ local function httpRequest (host, port, path, type, body)
         else
             local _, err = socket:poll_connect()
             if err ~= "timeout" then
-                obs.script_log(obs.LOG_INFO, string.format("HTTP: poll: error: %s -- aborting", err))
+                obs.script_log(obs.LOG_ERROR, string.format("HTTP: poll: error: %s -- aborting", err))
                 return nil
             else
                 count = count + 1
                 if count > 100 then
-                    obs.script_log(obs.LOG_INFO, string.format("HTTP: poll: too many connect timeouts in sequence"))
+                    obs.script_log(obs.LOG_ERROR, string.format("HTTP: poll: too many connect timeouts in sequence"))
                     return nil
                 end
             end
@@ -93,8 +93,13 @@ end
 local function recall (address, preset)
      obs.script_log(obs.LOG_INFO,
          string.format("recalling PTZ preset #%d on Birddog camera %s", preset, address))
-     httpRequest(address, 8080, "/recall",
+     local res = httpRequest(address, 8080, "/recall",
          "application/json", "{ \"Preset\": \"Preset-" .. preset .. "\" }")
+     local code = tonumber(res:match("HTTP/1.1 (%d+) "))
+     if code ~= 200 then
+         obs.script_log(obs.LOG_ERROR,
+             string.format("Birddog camera answered with HTTP response code %d", code))
+     end
 end
 
 --  create obs_source_info structure
