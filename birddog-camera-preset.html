@@ -127,7 +127,7 @@
                 /*  set a speed  */
                 async toggleSpeed () {
                     this.speed = (this.speed + 1) % 3
-                    console.log(`setting PTZ speed ${speed} on Birddog camera ${this.camera}`)
+                    console.log(`setting PTZ speed ${this.speed} on Birddog camera ${this.camera}`)
                     const speeds = [
                         { PanSpeed:  "0", TiltSpeed:  "0", ZoomSpeed: "0" },
                         { PanSpeed: "10", TiltSpeed:  "9", ZoomSpeed: "3" },
