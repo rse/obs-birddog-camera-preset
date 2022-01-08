@@ -17,9 +17,10 @@ Source Dock](https://github.com/exeldro/obs-source-dock) inside [OBS
 Studio](https://obsproject.com). The SPA is usually running in a scene where it
 sits on top of a preview of the camera video stream.
 
-The second way of recalling a preset is an automatic one through an OBS Lua
-based scene/source filter which recalls the camera preset automatically once the
-scene/source becomes active (is shown in the program).
+The second way of recalling a preset is an automatic one through an
+OBS Lua based scene/source filter which recalls the camera preset
+automatically once the scene/source becomes active in the PREVIEW (if
+studio mode is enabled) and/or the PROGRAM of OBS Studio.
 
 Usage
 -----
