@@ -154,7 +154,7 @@ info.load = function (filter, settings)
                         obs.script_log(obs.LOG_INFO, string.format(
                             "hook: scene \"%s\" with filter source \"%s\" is in PREVIEW now -- reacting",
                             sceneSourceName, filterSourceName))
-                        recall(filter.cfg.control, filter.cfg.preset1)
+                        recall(filter.cfg.address, filter.cfg.preset1)
                     end
                 end
             end
