@@ -11,97 +11,33 @@ local obs = obslua
 
 --  global Lua APIs
 local bit      = require("bit")
-local ljsocket = require("ljsocket")
-
---  send HTTP request
-local function httpRequest (host, port, path, type, body)
-    --  create HTTP request
-    local req
-    if type == nil and body == nil then
-        req = "GET " .. path .. " HTTP/1.1\r\n"
-    else
-        req = "POST " .. path .. " HTTP/1.1\r\n"
-    end
-    req = req ..
-        "Host: " .. host .. "\r\n" ..
-        "User-Agent: OBS-Studio/Birddog-Camera-Preset\r\n" ..
-        "Accept: */*\r\n" ..
-        "Connection: keep-alive\r\n"
-    if not (type == nil and body == nil) then
-        req = req ..
-            "Content-Type: " .. type .."\r\n" ..
-            "Content-Length: " .. string.len(body) .."\r\n" ..
-            "\r\n" ..
-            body
-    end
-
-    --  connect to the server
-    --  obs.script_log(obs.LOG_INFO, string.format("HTTP: connect: \"%s:%d\"", host, port))
-    local socket = ljsocket.create("inet", "stream", "tcp")
-    socket:set_blocking(false)
-    socket:connect(host, port)
-    local count = 0
-    while true do
-        if socket:is_connected() then
-            --  send request
-            --  obs.script_log(obs.LOG_INFO, string.format("HTTP: send: \"%s\"", req))
-            local _, err = socket:send(req)
-            if err == "timeout" then
-                obs.script_log(obs.LOG_ERROR, string.format("HTTP: send: error: %s -- aborting", err))
-                socket:close()
-                return nil
-            end
-
-            --  receive response
-            local res = ""
-            local total_length = 0
-            while true do
-                local chunk, err2 = socket:receive()
-                if chunk then
-                    res = res .. chunk
-                    if not total_length then
-                        total_length = tonumber(res:match("Content%-Length: (%d+)"))
-                    end
-                    if #res >= total_length then
-                        --  obs.script_log(obs.LOG_INFO, string.format("HTTP: receive: \"%s\"", res))
-                        socket:close()
-                        return res
-                    end
-                elseif err2 ~= "timeout" then
-                    obs.script_log(obs.LOG_ERROR, string.format("HTTP: receive: error: %s -- aborting", err2))
-                    socket:close()
-                    return nil
-                end
-            end
-        else
-            local _, err = socket:poll_connect()
-            if err ~= "timeout" then
-                obs.script_log(obs.LOG_ERROR, string.format("HTTP: poll: error: %s -- aborting", err))
-                return nil
-            else
-                count = count + 1
-                if count > 100 then
-                    obs.script_log(obs.LOG_ERROR, string.format("HTTP: poll: too many connect timeouts in sequence"))
-                    return nil
-                end
-            end
-        end
-    end
-end
 
 --  recall a pre-defined PTZ preset on a Birddog camera
-local function recall (address, preset)
-     obs.script_log(obs.LOG_INFO,
-         string.format("recalling PTZ preset #%d on Birddog camera %s", preset, address))
-     local res = httpRequest(address, 8080, "/recall",
-         "application/json", "{ \"Preset\": \"Preset-" .. preset .. "\" }")
-     if res ~= nil then
-         local code = tonumber(res:match("HTTP/1.1 (%d+) "))
-         if code ~= 200 then
-             obs.script_log(obs.LOG_ERROR,
-                 string.format("Birddog camera answered with HTTP response code %d", code))
-         end
-     end
+local function recall (control, preset)
+    obs.script_log(obs.LOG_INFO,
+        string.format("recalling PTZ preset #%d on control UI source \"%s\"", control, control))
+
+    --  locate control UI source
+    local controlSource = obs.obs_get_source_by_name(control)
+	if controlSource == nil then
+        obs.script_log(obs.LOG_ERROR,
+            string.format("no such control UI source named \"%s\" found", control))
+        return false
+	end
+
+    --  send keyboard event to source
+    local event = obs.obs_key_event()
+    event.native_vkey      = 0
+    event.modifiers        = 0
+    event.native_scancode  = 0
+    event.native_modifiers = 0
+    event.text             = preset
+    obs.obs_source_send_key_click(controlSource, event, false)
+    obs.obs_source_send_key_click(controlSource, event, true)
+
+    --  release resource
+	obs.obs_source_release(controlSource)
+    return true
 end
 
 --  create obs_source_info structure
@@ -118,7 +54,7 @@ end
 --  hook: provide default settings (initialization before create)
 info.get_defaults = function (settings)
     --  provide default values
-    obs.obs_data_set_default_string(settings, "address", "192.168.0.1")
+    obs.obs_data_set_default_string(settings, "control", "")
     obs.obs_data_set_default_string(settings, "preset1", "none")
     obs.obs_data_set_default_string(settings, "preset2", "none")
 end
@@ -133,7 +69,7 @@ info.create = function (_settings, source)
     filter.height = 0
     filter.name = obs.obs_source_get_name(source)
     filter.cfg = {
-        address = "192.168.0.1",
+        control = "",
         preset1 = "none",
         preset2 = "none"
     }
@@ -152,7 +88,7 @@ end
 --  hook: after loading settings
 info.load = function (filter, settings)
     --  take current parameters
-    filter.cfg.address = obs.obs_data_get_string(settings, "address")
+    filter.cfg.control = obs.obs_data_get_string(settings, "control")
     filter.cfg.preset1 = obs.obs_data_get_string(settings, "preset1")
     filter.cfg.preset2 = obs.obs_data_get_string(settings, "preset2")
 
@@ -171,7 +107,7 @@ info.load = function (filter, settings)
                         obs.script_log(obs.LOG_INFO, string.format(
                             "hook: scene \"%s\" with filter source \"%s\" is in PREVIEW now -- reacting",
                             sceneSourceName, filterSourceName))
-                        recall(filter.cfg.address, filter.cfg.preset1)
+                        recall(filter.cfg.control, filter.cfg.preset1)
                     end
                 end
             end
@@ -183,7 +119,7 @@ end
 info.get_properties = function (_filter)
     --  create properties
     local props = obs.obs_properties_create()
-    obs.obs_properties_add_text(props, "address", "Birddog Camera IP (X.X.X.X):", obs.OBS_TEXT_DEFAULT)
+    obs.obs_properties_add_text(props, "control", "Source Name of Control UI:", obs.OBS_TEXT_DEFAULT)
     local function addList (prop)
         obs.obs_property_list_add_string(prop, "none", "none")
         obs.obs_property_list_add_string(prop, "1", "1")
@@ -207,7 +143,7 @@ end
 
 --  hook: react on filter property update (during dialog)
 info.update = function (filter, settings)
-    filter.cfg.address = obs.obs_data_get_string(settings, "address")
+    filter.cfg.control = obs.obs_data_get_string(settings, "control")
     filter.cfg.preset1 = obs.obs_data_get_string(settings, "preset1")
     filter.cfg.preset2 = obs.obs_data_get_string(settings, "preset2")
 end
@@ -223,7 +159,7 @@ info.activate = function (filter)
             obs.script_log(obs.LOG_INFO, string.format(
                 "hook: scene \"%s\" with filter source \"%s\" is in PROGRAM now -- reacting",
                 sceneSourceName, filterSourceName))
-            recall(filter.cfg.address, filter.cfg.preset2)
+            recall(filter.cfg.control, filter.cfg.preset2)
         end
     end
 end
