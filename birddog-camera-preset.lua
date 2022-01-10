@@ -10,12 +10,12 @@
 local obs = obslua
 
 --  global Lua APIs
-local bit      = require("bit")
+local bit = require("bit")
 
 --  recall a pre-defined PTZ preset on a Birddog camera
 local function recall (control, preset)
     obs.script_log(obs.LOG_INFO,
-        string.format("recalling PTZ preset #%d on control UI source \"%s\"", control, control))
+        string.format("recalling PTZ preset #%s on control UI source \"%s\"", preset, control))
 
     --  locate control UI source
     local controlSource = obs.obs_get_source_by_name(control)
