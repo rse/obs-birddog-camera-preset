@@ -94,7 +94,9 @@
                     transparent: false,
                     camera:      "192.168.0.1",
                     presets:     [ { num: 1, name: 1 } ],
-                    speed:       1
+                    speed:       1,
+                    recalling:   false,
+                    recallnext:  null
                 }
             },
             async mounted () {
@@ -143,18 +145,51 @@
                     ]
                     const speed = speeds[this.speed]
                     const xhr = new XMLHttpRequest()
-                    xhr.open("POST", `http://${this.camera}:8080/birddogptzsetup`)
+                    xhr.open("POST", `http://${this.camera}:8080/birddogptzsetup`, true)
                     xhr.setRequestHeader("Content-Type", "application/json")
                     xhr.send(JSON.stringify(speed))
                 },
 
                 /*  set a preset  */
                 async recallPreset (preset) {
-                    console.log(`recalling PTZ preset #${preset.num} on Birddog camera ${this.camera}`)
-                    const xhr = new XMLHttpRequest()
-                    xhr.open("POST", `http://${this.camera}:8080/recall`)
-                    xhr.setRequestHeader("Content-Type", "application/json")
-                    xhr.send(`{ "Preset": "Preset-${preset.num}" }`)
+                    if (this.recalling) {
+                        /*  queue as next recall and intentionally override
+                            already queued next recall (as it makes no
+                            sense to temporarily change the positions to
+                            any intermediate position) */
+                        if (this.recallnext)
+                            console.log(`overriding the queueing for recalling PTZ preset #${preset.num} on Birddog camera ${this.camera}`)
+                        else
+                            console.log(`queueing for recalling PTZ preset #${preset.num} on Birddog camera ${this.camera}`)
+                        this.recallnext = preset
+                        return
+                    }
+                    while (true)  {
+                        /*  perform a single recall  */
+                        this.recalling = true
+                        console.log(`recalling PTZ preset #${preset.num} on Birddog camera ${this.camera}`)
+                        await new Promise((resolve, reject) => {
+                            const xhr = new XMLHttpRequest()
+                            xhr.open("POST", `http://${this.camera}:8080/recall`, true)
+                            xhr.onreadystatechange = () => {
+                                if (xhr.readyState === XMLHttpRequest.DONE)
+                                    resolve()
+                            }
+                            xhr.setRequestHeader("Content-Type", "application/json")
+                            xhr.send(`{ "Preset": "Preset-${preset.num}" }`)
+                        })
+                        await new Promise((resolve, reject) => {
+                            /*  give camera time to really react  */
+                            setTimeout(resolve, 1000)
+                        })
+                        this.recalling = false
+
+                        /*  either stop of take next recall request into account immediately  */
+                        if (this.recallnext === null)
+                            break
+                        preset = this.recallnext
+                        this.recallnext = null
+                    }
                 }
             }
         }
