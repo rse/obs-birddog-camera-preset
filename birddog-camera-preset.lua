@@ -188,10 +188,10 @@ info.video_render = function (ctx, _effect)
 end
 
 --  hook: provide size
-info.get_width = function (ctx)
+info.get_width = function (_ctx)
     return 0
 end
-info.get_height = function (ctx)
+info.get_height = function (_ctx)
     return 0
 end
 
